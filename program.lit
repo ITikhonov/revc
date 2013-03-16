@@ -12,6 +12,10 @@ Types
 -	c.stack.append(O(i=Type,c=['char']))
 -macros['char']=macro_char
 
+-def macro_int(c,t):
+-	c.stack.append(O(i=Type,c=['int']))
+-macros['int']=macro_int
+
 -def macro_ptr(c,t):
 -	t=c.stack.pop()
 -	t.c.append('ptr')
@@ -32,18 +36,52 @@ Types
 -	c.stack.append(t)
 -macros['array']=macro_array
 
--def macro_pfield(c,t):
--	fd=c.stack.pop()
--	st=c.stack.pop()
--	c.stack.append(['->',st,fd])
--macros['<-']=macro_pfield
+
+-def macro_assign(c,t):
+-	t=c.stack.pop()
+-	if getattr(t,'i',None)==Type:
+-		n=c.stack.pop()
+-		v=c.stack.pop()
+-		c.stack.append(('assignvar',t,n,v))
+-	else:
+-		v=c.stack.pop()
+-		c.stack.append(('assign',t,v))
+-macros['=']=macro_assign
+
+-def macro_binop(c,t):
+-	a=c.stack.pop()
+-	b=c.stack.pop()
+-	c.stack.append((t,b,a))
+-for x in '< > + - / * == >= <= <-'.split():
+-	macros[x]=macro_binop
+
+-def macro_triop(c,t):
+-	a=c.stack.pop()
+-	b=c.stack.pop()
+-	d=c.stack.pop()
+-	c.stack.append((t,d,b,a))
+-for x in 'for ifelse'.split():
+-	macros[x]=macro_triop
+
+-def macro_infix(c,t):
+-	c.stack.append((t,c.stack.pop()))
+-for x in 'return ++'.split():
+-	macros[x]=macro_infix
+
+-def macro_block(c,t):
+-	b=[]
+-	while c.stack[-1]!='[':
+-		b.insert(0,c.stack.pop())
+-	c.stack.pop()
+-	c.stack.append(b)
+-macros[']']=macro_block
 
 -def macro_read(c,t): # it should not be defined here but rather dynamically
 -	args=[]
 -	args.insert(0,c.stack.pop())
 -	args.insert(0,c.stack.pop())
 -	args.insert(0,c.stack.pop())
--	c.stack.append(['funcall',t,args])
+-	c.stack.append(('funcall',t,args))
 -macros['read']=macro_read
 
 
@@ -89,12 +127,14 @@ Types
 -	while text:
 -		try: text=parse_one(c,text)
 -		except:
--			print c.stack
--			print text[:20]
+-			print 'tripped holding',c.stack
+-			print 'on',repr(text[:20])
 -			raise
--	print c.stack
+-	pp(c.stack,indent=8)
 
 =>revc.py
+-from pprint import pprint as pp
+
 -class O:
 -	def __init__(_,**kw):
 -		for x,y in kw.iteritems():
