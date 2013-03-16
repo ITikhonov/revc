@@ -60,7 +60,7 @@ Types
 -	b=c.stack.pop()
 -	d=c.stack.pop()
 -	c.stack.append((t,d,b,a))
--for x in 'for ifelse'.split():
+-for x in 'for ifelse func'.split():
 -	macros[x]=macro_triop
 
 -def macro_infix(c,t):
@@ -76,6 +76,7 @@ Types
 -	c.stack.append(b)
 -macros[']']=macro_block
 
+
 -def macro_read(c,t): # it should not be defined here but rather dynamically
 -	args=[]
 -	args.insert(0,c.stack.pop())
@@ -86,9 +87,11 @@ Types
 
 
 =>example.revc
--char	ptr  
--c	conn struct ptr
--buf	char 1024 array
+-[
+-	char	ptr  
+-	c	conn struct ptr
+-	buf	char 1024 array
+-]
 -[ 
 -	fd c <- buf 1024 read r int =
 -	0 i int = [ i r < ] [ i ++ ] [
