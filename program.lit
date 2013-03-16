@@ -1,0 +1,115 @@
+		Macros
+
+=macros
+-macros={}
+
+Types
+
+=types
+-Type='Type'
+
+-def macro_char(c,t):
+-	c.stack.append(O(i=Type,c=['char']))
+-macros['char']=macro_char
+
+-def macro_ptr(c,t):
+-	t=c.stack.pop()
+-	t.c.append('ptr')
+-	c.stack.append(t)
+-macros['ptr']=macro_ptr
+
+-def macro_struct(c,t):
+-	t=c.stack.pop()
+-	assert type(t)==str
+-	c.stack.append(O(i=Type,c=['struct '+t]))
+-macros['struct']=macro_struct
+
+
+-def macro_array(c,t):
+-	n=int(c.stack.pop())
+-	t=c.stack.pop()
+-	t.c.append('[%u]'%n)
+-	c.stack.append(t)
+-macros['array']=macro_array
+
+-def macro_pfield(c,t):
+-	fd=c.stack.pop()
+-	st=c.stack.pop()
+-	c.stack.append(['->',st,fd])
+-macros['<-']=macro_pfield
+
+-def macro_read(c,t): # it should not be defined here but rather dynamically
+-	args=[]
+-	args.insert(0,c.stack.pop())
+-	args.insert(0,c.stack.pop())
+-	args.insert(0,c.stack.pop())
+-	c.stack.append(['funcall',t,args])
+-macros['read']=macro_read
+
+
+=>example.revc
+-char	ptr  
+-c	conn struct ptr
+-buf	char 1024 array
+-[ 
+-	fd c <- buf 1024 read r int =
+-	0 i int = [ i r < ] [ i ++ ] [
+-		i buf [] "\r\n\r\n" reg c <- ==
+-		[ reg c <- ++ ]
+-		[ 0 reg c <- = ] ifelse
+-
+-		[ reg c <- ] 4 == [ buf i 1 + + return ]
+-	] for
+-	0 return
+-] skip_header func
+
+
+
+=parse-one
+-def parse_one(c,text):
+-	if text.startswith('"'):
+-		t,rest=text[1:].split('"',1)
+-		c.stack.append('"'+t+'"')
+-		return rest
+-	s=text.split(None,1)
+-	t,rest=s if len(s)==2 else (s[0],'')
+-	if t in c.macro: c.macro[t](c,t)
+-	else: c.stack.append(t)
+-	return rest
+
+
+=context
+-class context:
+-	stack=[]
+-	macro=macros
+
+=parse
+-def parse(text):
+-	c=context()
+-	while text:
+-		try: text=parse_one(c,text)
+-		except:
+-			print c.stack
+-			print text[:20]
+-			raise
+-	print c.stack
+
+=>revc.py
+-class O:
+-	def __init__(_,**kw):
+-		for x,y in kw.iteritems():
+-			setattr(_,x,y)
+
+-	def __repr__(_):
+-		return 'O('+(', '.join([("%r=%r"%x) for x in _.__dict__.items()]))+')'
+
+>macros
+>types
+>parse-one
+>parse
+>context
+
+
+-if __name__=='__main__':
+-	from sys import argv
+-	print parse(open(argv[1]).read())
