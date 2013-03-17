@@ -1,3 +1,90 @@
+		Utilities
+
+=utils
+-def resolve_type(t,name=None):
+-	c=[]
+-	for x in t.c:
+-		if x=='ptr': c.append('*')
+-		elif x.startswith('[') and name:
+-			c.append(name)
+-			name=None
+-			c.append(x)
+-		else: c.append(x)
+-	if name: c.append(name)
+-	return ' '.join(c)
+
+-def func_decl(name,rtype,args):
+-	rtype=resolve_type(rtype)
+-	args=[resolve_type(args[i+1],args[i]) for i in range(0,len(args),2)]
+-	return "%s %s(%s)"%(rtype,name,','.join(args))
+
+
+		Compiler
+
+=compiler
+-comps={}
+
+-def c_func(t,c):
+-	_,args,body,name=t
+-	c.code.append(func_decl(name,args[0],args[1:]))
+-	c.code.append('{')
+-	compiler(body,c)
+-	c.code.append('}')
+
+-comps['func']=c_func
+
+-def c_assignvar(t,c):
+-	_,vt,name,value=t
+-	c.code.append(resolve_type(vt,name))
+-	c.code.append('=')
+-	compile(value,c)
+-	c.code.append(';')
+-comps['assignvar']=c_assignvar
+
+-def c_funcall(t,c):
+-	_,name,args=t
+-	c.code.append(name)
+-	c.code.append('(')
+-	cargs=[]
+-	for x in args:
+-		compile(x,c)
+-		c.code.append(',')
+-	c.code.pop()
+-	c.code.append(')')
+-comps['funcall']=c_funcall
+
+
+-def c_pfield(t,c):
+-	_,f,s=t
+-	compile(s,c)
+-	c.code.append('->')
+-	c.code.append(f)
+-comps['<-']=c_pfield
+
+
+-def c_for(t,c):
+-	_,cond,next,body=t
+-	c.code.append('for(;')
+-	compile(cond,c)
+-	c.code.append(';')
+-	compile(next,c)
+-	c.code.append(') {')
+-	compiler(body,c)
+-	c.code.append('}')
+-comps['for']=c_for
+
+-def compile(expr,c):
+-	if type(expr)==tuple:
+-		comps[expr[0]](expr,c)
+-	else:
+-		c.code.append(expr)
+
+-def compiler(tree,c):
+-	for x in tree:
+-		compile(x,c)
+-	return c
+
+
 		Macros
 
 =macros
@@ -94,7 +181,7 @@ Types
 -]
 -[ 
 -	fd c <- buf 1024 read r int =
--	0 i int = [ i r < ] [ i ++ ] [
+-	0 i int = i r < i ++ [
 -		i buf [] "\r\n\r\n" reg c <- ==
 -		[ reg c <- ++ ]
 -		[ 0 reg c <- = ] ifelse
@@ -133,7 +220,8 @@ Types
 -			print 'tripped holding',c.stack
 -			print 'on',repr(text[:20])
 -			raise
--	pp(c.stack,indent=8)
+-	return c
+
 
 =>revc.py
 -from pprint import pprint as pp
@@ -146,6 +234,9 @@ Types
 -	def __repr__(_):
 -		return 'O('+(', '.join([("%r=%r"%x) for x in _.__dict__.items()]))+')'
 
+>utils
+>compiler
+
 >macros
 >types
 >parse-one
@@ -155,4 +246,11 @@ Types
 
 -if __name__=='__main__':
 -	from sys import argv
--	print parse(open(argv[1]).read())
+-	c=parse(open(argv[1]).read())
+-	pp(c.stack,indent=8)
+-	c.code=[]
+-	try: c=compiler(c.stack,c)
+-	except:
+-		print c.code
+-		raise
+-	print c.code
