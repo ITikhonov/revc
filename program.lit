@@ -103,9 +103,11 @@
 
 -def c_binop(t,c):
 -	op,a,b=t
+-	c.code.append('(')
 -	compile(a,c)
 -	c.code.append(op)
 -	compile(b,c)
+-	c.code.append(')')
 -for x in '+ - * / < > >= <= == ='.split():
 -	comps[x]=c_binop
 
