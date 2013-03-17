@@ -25,8 +25,8 @@
 -comps={}
 
 -def c_func(t,c):
--	_,args,body,name=t
--	c.code.append(func_decl(name,args[0],args[1:]))
+-	_,args,body=t
+-	c.code.append(func_decl(args[1],args[0],args[2:]))
 -	c.code.append('{')
 -	compiler(body,c)
 -	c.code.append('}')
@@ -38,8 +38,8 @@
 -	c.code.append(resolve_type(vt,name))
 -	c.code.append('=')
 -	compile(value,c)
--	c.code.append(';')
 -comps['assignvar']=c_assignvar
+
 
 -def c_funcall(t,c):
 -	_,name,args=t
@@ -73,6 +73,55 @@
 -	c.code.append('}')
 -comps['for']=c_for
 
+-def c_ifelse(t,c):
+-	_,cond,true,false=t
+-	c.code.append('if(')
+-	compile(cond,c)
+-	c.code.append(') {')
+-	compiler(true,c)
+-	c.code.append('} else {')
+-	compiler(false,c)
+-	c.code.append('}')
+-comps['ifelse']=c_ifelse
+
+-def c_if(t,c):
+-	_,cond,true=t
+-	c.code.append('if(')
+-	compile(cond,c)
+-	c.code.append(') {')
+-	compiler(true,c)
+-	c.code.append('}')
+-comps['if']=c_if
+
+-def c_arrsub(t,c):
+-	_,i,a=t
+-	compile(a,c)
+-	c.code.append('[')
+-	compile(i,c)
+-	c.code.append(']')
+-comps['[]']=c_arrsub
+
+-def c_binop(t,c):
+-	op,a,b=t
+-	compile(a,c)
+-	c.code.append(op)
+-	compile(b,c)
+-for x in '+ - * / < > >= <= == ='.split():
+-	comps[x]=c_binop
+
+-def c_infix(t,c):
+-	op,a=t
+-	compile(a,c)
+-	c.code.append(op)
+-for x in '-- ++'.split():
+-	comps[x]=c_infix
+
+-def c_return(t,c):
+-	_,a=t
+-	c.code.append('return ')
+-	compile(a,c)
+-comps['return']=c_return
+
 -def compile(expr,c):
 -	if type(expr)==tuple:
 -		comps[expr[0]](expr,c)
@@ -82,6 +131,7 @@
 -def compiler(tree,c):
 -	for x in tree:
 -		compile(x,c)
+-		c.code.append(';')
 -	return c
 
 
@@ -132,14 +182,14 @@ Types
 -		c.stack.append(('assignvar',t,n,v))
 -	else:
 -		v=c.stack.pop()
--		c.stack.append(('assign',t,v))
+-		c.stack.append(('=',t,v))
 -macros['=']=macro_assign
 
 -def macro_binop(c,t):
 -	a=c.stack.pop()
 -	b=c.stack.pop()
 -	c.stack.append((t,b,a))
--for x in '< > + - / * == >= <= <-'.split():
+-for x in '< > + - / * == >= <= <- [] if func'.split():
 -	macros[x]=macro_binop
 
 -def macro_triop(c,t):
@@ -147,7 +197,7 @@ Types
 -	b=c.stack.pop()
 -	d=c.stack.pop()
 -	c.stack.append((t,d,b,a))
--for x in 'for ifelse func'.split():
+-for x in 'for ifelse'.split():
 -	macros[x]=macro_triop
 
 -def macro_infix(c,t):
@@ -175,21 +225,21 @@ Types
 
 =>example.revc
 -[
--	char	ptr  
+-char ptr skip_header  
 -	c	conn struct ptr
 -	buf	char 1024 array
 -]
 -[ 
 -	fd c <- buf 1024 read r int =
 -	0 i int = i r < i ++ [
--		i buf [] "\r\n\r\n" reg c <- ==
+-		i buf [] reg c <- "\r\n\r\n" [] ==
 -		[ reg c <- ++ ]
 -		[ 0 reg c <- = ] ifelse
 -
--		[ reg c <- ] 4 == [ buf i 1 + + return ]
+-		reg c <- 4 == [ buf i 1 + + return ] if
 -	] for
 -	0 return
--] skip_header func
+-] func
 
 
 
@@ -253,4 +303,4 @@ Types
 -	except:
 -		print c.code
 -		raise
--	print c.code
+-	print ''.join(c.code)
