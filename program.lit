@@ -24,6 +24,12 @@
 =compiler
 -comps={}
 
+-def c_include(t,c):
+-	_,files=t
+-	for x in files:
+-		c.code.append('#include <{0}>\n'.format(x))
+-comps['include']=c_include
+
 -def c_func(t,c):
 -	_,args,body=t
 -	c.code.append(func_decl(args[1],args[0],args[2:]))
@@ -171,6 +177,11 @@ Types
 -	c.stack.append(t)
 -macros['ptr']=macro_ptr
 
+-def macro_include(c,t):
+-	t=c.stack.pop()
+-	c.stack.append(('include',t))
+-macros['include']=macro_include
+
 -def macro_struct(c,t):
 -	t=c.stack.pop()
 -	if type(t)==str:
@@ -250,6 +261,7 @@ Types
 
 
 =>example.revc
+-[ unistd.h ] include
 -[
 -	conn
 -	fd int
