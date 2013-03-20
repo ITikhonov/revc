@@ -1,7 +1,30 @@
 		Utilities
 
 =utils
+-def mangle_char(c):
+-	if x not in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_':
+-		return '{:02x}'.format(ord(c))
+-	return None
+
+-def mangle_name(name):
+-	v=[]
+-	m=[]
+-	if name[0] not in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_':
+-		v.append('_')
+-		m.append(mangle_char(name[0]))
+-	else:
+-		v.append(name[0])
+
+-	for x in name[1:]:
+-		if x not in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_':
+-			v.append('_')
+-			m.append(mangle_char(x))
+-		else:
+-			v.append(x)
+-	return '{0}__{1}'.format(''.join(v),''.join(m)) if m else name
+
 -def resolve_type(t,name=None):
+-	if name: name=mangle_name(name)
 -	c=[]
 -	for x in t.c:
 -		if x=='ptr': c.append('*')
@@ -14,6 +37,7 @@
 -	return ' '.join(c)
 
 -def func_decl(name,rtype,args):
+-	name=mangle_name(name)
 -	rtype=resolve_type(rtype)
 -	args=[resolve_type(args[i+1],args[i]) for i in range(0,len(args),2)]
 -	return "%s %s(%s)"%(rtype,name,','.join(args))
@@ -74,7 +98,7 @@
 -	_,f,s=t
 -	compile(s,c)
 -	c.code.append('->')
--	c.code.append(f)
+-	c.code.append(mangle_name(f))
 -comps['<-']=c_pfield
 
 
@@ -143,8 +167,12 @@
 -def compile(expr,c):
 -	if type(expr)==tuple:
 -		comps[expr[0]](expr,c)
--	else:
+-	elif expr.startswith('"'):
 -		c.code.append(expr)
+-	elif expr.isdigit():
+-		c.code.append(expr)
+-	else:
+-		c.code.append(mangle_name(expr))
 
 -def compiler(tree,c):
 -	for x in tree:
@@ -267,19 +295,19 @@ Types
 -	fd int
 -	reg int
 -] struct
--skip_header [
+-skip-header [
 -char ptr 
 -	c	conn struct ptr
--	buf	char 1024 []
+-	buf-fer	char 1024 []
 -]
 -[ 
--	fd c <- buf 1024 read/3 r int =
+-	fd c <- buf-fer 1024 read/3 r int =
 -	0 i int = i r < i ++ [
--		i buf [] reg c <- "\r\n\r\n" [] ==
+-		i buf-fer [] reg c <- "\r\n\r\n" [] ==
 -		[ reg c <- ++ ]
 -		[ 0 reg c <- = ] ifelse
 -
--		reg c <- 4 == [ buf i 1 + + return ] if
+-		reg c <- 4 == [ buf-fer i 1 + + return ] if
 -	] for
 -	0 return
 -] func
@@ -309,7 +337,7 @@ Types
 -	s=text.split(None,1)
 -	t,rest=s if len(s)==2 else (s[0],'')
 -	if t in c.macro: c.macro[t](c,t)
--	elif '/' in t:
+-	elif '/' in t and t.split('/',1)[1].isdigit():
 -		macro_call(c,t)
 -	else: c.stack.append(t)
 -	return rest
