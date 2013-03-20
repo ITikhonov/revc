@@ -167,6 +167,8 @@
 -def compile(expr,c):
 -	if type(expr)==tuple:
 -		comps[expr[0]](expr,c)
+-	elif type(expr)==list:
+-		raise Exception('Hey, list!',expr)
 -	elif expr.startswith('"'):
 -		c.code.append(expr)
 -	elif expr.isdigit():
@@ -190,6 +192,10 @@ Types
 
 =types
 -Type='Type'
+
+-def macro_void(c,t):
+-	c.stack.append(O(i=Type,c=['void']))
+-macros['void']=macro_void
 
 -def macro_char(c,t):
 -	c.stack.append(O(i=Type,c=['char']))
