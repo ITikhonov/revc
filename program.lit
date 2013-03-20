@@ -31,8 +31,8 @@
 -comps['include']=c_include
 
 -def c_func(t,c):
--	_,args,body=t
--	c.code.append(func_decl(args[1],args[0],args[2:]))
+-	_,name,args,body=t
+-	c.code.append(func_decl(name,args[0],args[1:]))
 -	c.code.append('{')
 -	compiler(body,c)
 -	c.code.append('}')
@@ -224,7 +224,7 @@ Types
 -	a=c.stack.pop()
 -	b=c.stack.pop()
 -	c.stack.append((t,b,a))
--for x in '< > + - / * == >= <= <- if func'.split():
+-for x in '< > + - / * == >= <= <- if'.split():
 -	macros[x]=macro_binop
 
 -def macro_triop(c,t):
@@ -232,7 +232,7 @@ Types
 -	b=c.stack.pop()
 -	d=c.stack.pop()
 -	c.stack.append((t,d,b,a))
--for x in 'for ifelse'.split():
+-for x in 'for ifelse func'.split():
 -	macros[x]=macro_triop
 
 -def macro_infix(c,t):
@@ -267,8 +267,8 @@ Types
 -	fd int
 -	reg int
 -] struct
--[
--char ptr skip_header  
+-skip_header [
+-char ptr 
 -	c	conn struct ptr
 -	buf	char 1024 []
 -]
@@ -285,14 +285,14 @@ Types
 -] func
 
 =>fib.revc
--[ int fib i int ]
+-fib [ int  i int ]
 -[
 -	i 0 == [ i return ] if
 -	i 1 == [ i return ] if
 -	i 1 - fib/1 i 2 - fib/1 + return
 -] func
 
--[ int main argc int argv char ptr [] ]
+-main [ int  argc int argv char ptr [] ]
 -[
 -	"fib: %u\n" 1 argv [] atoi/1 fib/1 printf/2
 -	0 return
