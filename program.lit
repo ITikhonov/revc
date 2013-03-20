@@ -73,6 +73,11 @@
 -	c.code.append('}');
 -comps['struct']=c_struct
 
+-def c_var(t,c):
+-	_,t,name=t
+-	c.code.append(resolve_type(t,name))
+-comps['var']=c_var
+
 -def c_assignvar(t,c):
 -	_,vt,name,value=t
 -	c.code.append(resolve_type(vt,name))
@@ -103,11 +108,14 @@
 
 
 -def c_for(t,c):
--	_,cond,next,body=t
--	c.code.append('for(;')
--	compile(cond,c)
+-	_,pre,body=t
+-	c.code.append('for(')
+-	if len(pre)==3: compile(pre[0],c)
 -	c.code.append(';')
--	compile(next,c)
+-	if len(pre)==3: compile(pre[1],c)
+-	elif len(pre)==2: compile(pre[0],c)
+-	c.code.append(';')
+-	if len(pre)>0: compile(pre[-1],c)
 -	c.code.append(') {')
 -	compiler(body,c)
 -	c.code.append('}')
@@ -243,6 +251,12 @@ Types
 -macros['[]']=macro_array
 
 
+-def macro_var(c,t):
+-	t=c.stack.pop()
+-	n=c.stack.pop()
+-	c.stack.append(('var',t,n))
+-macros['var']=macro_var
+
 -def macro_assign(c,t):
 -	t=c.stack.pop()
 -	if getattr(t,'i',None)==Type:
@@ -258,7 +272,7 @@ Types
 -	a=c.stack.pop()
 -	b=c.stack.pop()
 -	c.stack.append((t,b,a))
--for x in '< > + - / * == >= <= <- if'.split():
+-for x in '< > + - / * == >= <= <- if for'.split():
 -	macros[x]=macro_binop
 
 -def macro_triop(c,t):
@@ -266,7 +280,7 @@ Types
 -	b=c.stack.pop()
 -	d=c.stack.pop()
 -	c.stack.append((t,d,b,a))
--for x in 'for ifelse func'.split():
+-for x in 'ifelse func'.split():
 -	macros[x]=macro_triop
 
 -def macro_infix(c,t):
@@ -308,7 +322,8 @@ Types
 -]
 -[ 
 -	fd c <- buf-fer 1024 read/3 r int =
--	0 i int = i r < i ++ [
+-	[ 0 i int = i r < i ++ ]
+-	[
 -		i buf-fer [] reg c <- "\r\n\r\n" [] ==
 -		[ reg c <- ++ ]
 -		[ 0 reg c <- = ] ifelse
