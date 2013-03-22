@@ -27,8 +27,7 @@
 -	if name: name=mangle_name(name)
 -	c=[]
 -	for x in t.c:
--		if x=='ptr': c.append('*')
--		elif x.startswith('[') and name:
+-		if x.startswith('[') and name:
 -			c.append(name)
 -			name=None
 -			c.append(x)
@@ -88,7 +87,7 @@
 
 -def c_funcall(t,c):
 -	_,name,args=t
--	c.code.append(name)
+-	compile(name,c)
 -	c.code.append('(')
 -	cargs=[]
 -	for x in args:
@@ -103,8 +102,15 @@
 -	_,f,s=t
 -	compile(s,c)
 -	c.code.append('->')
--	c.code.append(mangle_name(f))
+-	compile(f,c)
 -comps['<-']=c_pfield
+
+-def c_field(t,c):
+-	_,f,s=t
+-	compile(s,c)
+-	c.code.append('.')
+-	compile(f,c)
+-comps['.']=c_field
 
 
 -def c_for(t,c):
@@ -179,7 +185,7 @@
 -		raise Exception('Hey, list!',expr)
 -	elif expr.startswith('"'):
 -		c.code.append(expr)
--	elif expr.isdigit():
+-	elif expr.isdigit() or (expr.startswith('-') and expr[1:].isdigit()):
 -		c.code.append(expr)
 -	else:
 -		c.code.append(mangle_name(expr))
@@ -213,11 +219,14 @@ Types
 -	c.stack.append(O(i=Type,c=['int']))
 -macros['int']=macro_int
 
--def macro_ptr(c,t):
+-def macro_asterisk(c,t):
 -	t=c.stack.pop()
--	t.c.append('ptr')
--	c.stack.append(t)
--macros['ptr']=macro_ptr
+-	if isinstance(t,O):
+-		t.c.append('*')
+-		c.stack.append(t)
+-	else:
+-		macro_binop(c,t)
+-macros['*']=macro_asterisk
 
 -def macro_include(c,t):
 -	t=c.stack.pop()
@@ -272,7 +281,7 @@ Types
 -	a=c.stack.pop()
 -	b=c.stack.pop()
 -	c.stack.append((t,b,a))
--for x in '< > + - / * == >= <= <- if for'.split():
+-for x in '< > + - / == >= <= <- . if for'.split():
 -	macros[x]=macro_binop
 
 -def macro_triop(c,t):
@@ -289,6 +298,7 @@ Types
 -	macros[x]=macro_infix
 
 -def macro_block(c,t):
+-	pp(c.stack,stream=stderr)
 -	b=[]
 -	while c.stack[-1]!='[':
 -		b.insert(0,c.stack.pop())
@@ -298,8 +308,8 @@ Types
 
 
 -def macro_call(c,t):
--	name,arity=t.split('/',1)
--	arity=int(arity)
+-	name=c.stack.pop()
+-	arity=int(t[1:])
 
 -	args=[]
 -	for i in range(arity):
@@ -310,18 +320,20 @@ Types
 
 =>example.revc
 -[ unistd.h ] include
+-[ sub sub int ] struct
 -[
 -	conn
 -	fd int
 -	reg int
+-	sub sub struct
 -] struct
 -skip-header [
--char ptr 
--	c	conn struct ptr
+-char * 
+-	c	conn struct *
 -	buf-fer	char 1024 []
 -]
 -[ 
--	fd c <- buf-fer 1024 read/3 r int =
+-	fd c <- buf-fer 1024 read /3 r int =
 -	[ 0 i int = i r < i ++ ]
 -	[
 -		i buf-fer [] reg c <- "\r\n\r\n" [] ==
@@ -330,6 +342,8 @@ Types
 -
 -		reg c <- 4 == [ buf-fer i 1 + + return ] if
 -	] for
+-
+-	1 sub sub . c <- =
 -	0 return
 -] func
 
@@ -338,10 +352,10 @@ Types
 -[
 -	i 0 == [ i return ] if
 -	i 1 == [ i return ] if
--	i 1 - fib/1 i 2 - fib/1 + return
+-	i 1 - fib /1 i 2 - fib /1 + return
 -] func
 
--main [ int  argc int argv char ptr [] ]
+-main [ int  argc int argv char * [] ]
 -[
 -	"fib: %u\n" 1 argv [] atoi/1 fib/1 printf/2
 -	0 return
@@ -358,7 +372,7 @@ Types
 -	s=text.split(None,1)
 -	t,rest=s if len(s)==2 else (s[0],'')
 -	if t in c.macro: c.macro[t](c,t)
--	elif '/' in t and t.split('/',1)[1].isdigit():
+-	elif t.startswith('/'):
 -		macro_call(c,t)
 -	else: c.stack.append(t)
 -	return rest
@@ -411,4 +425,8 @@ Types
 -	except:
 -		print c.code
 -		raise
--	print ''.join(c.code)
+-	try:
+-		print ''.join(c.code)
+-	except:
+-		print >>stderr,'tripped on'
+-		pp(c.code,stream=stderr)
