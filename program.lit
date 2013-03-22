@@ -27,7 +27,11 @@
 -	if name: name=mangle_name(name)
 -	c=[]
 -	for x in t.c:
--		if x.startswith('[') and name:
+-		if isinstance(x,list):
+-			f=func_decl('(*'+name+')',x[0],x[1:],mangle=False)
+-			name=None
+-			c.append(f)
+-		elif x.startswith('[') and name:
 -			c.append(name)
 -			name=None
 -			c.append(x)
@@ -35,8 +39,9 @@
 -	if name: c.append(name)
 -	return ' '.join(c)
 
--def func_decl(name,rtype,args):
--	name=mangle_name(name)
+-def func_decl(name,rtype,args,mangle=True):
+-	if mangle:
+-		name=mangle_name(name)
 -	rtype=resolve_type(rtype)
 -	args=[resolve_type(args[i+1],args[i]) for i in range(0,len(args),2)]
 -	return "%s %s(%s)"%(rtype,name,','.join(args))
@@ -71,6 +76,11 @@
 -		c.code.append(';')
 -	c.code.append('}');
 -comps['struct']=c_struct
+
+-def c_funcptr(t,c):
+-	_,name,decl=t
+-	c.code.append(func_decl('(*'+mangle_name(name)+')',decl[0],decl[1:],False))
+-comps['funcptr']=c_funcptr
 
 -def c_var(t,c):
 -	_,t,name=t
@@ -224,6 +234,8 @@ Types
 -	if isinstance(t,O):
 -		t.c.append('*')
 -		c.stack.append(t)
+-	elif isinstance(t,list):
+-		c.stack.append(O(i=Type,c=[t]))
 -	else:
 -		macro_binop(c,t)
 -macros['*']=macro_asterisk
@@ -320,6 +332,7 @@ Types
 
 =>example.revc
 -[ unistd.h ] include
+-handler [ void arg int ] * var
 -[ sub sub int ] struct
 -[
 -	conn
