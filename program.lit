@@ -56,6 +56,7 @@
 -	_,files=t
 -	for x in files:
 -		c.code.append('#include <{0}>\n'.format(x))
+-	c.nosemi=True
 -comps['include']=c_include
 
 -def c_func(t,c):
@@ -203,7 +204,10 @@
 -def compiler(tree,c):
 -	for x in tree:
 -		compile(x,c)
--		c.code.append(';')
+-		if c.nosemi:
+-			c.nosemi=False
+-		else:
+-			c.code.append(';')
 -	return c
 
 
@@ -332,6 +336,8 @@ Types
 
 =>example.revc
 -[ unistd.h ] include
+-[ stdio.h ] include
+
 -handler [ void arg int ] * var
 -[ sub sub int ] struct
 -[
@@ -395,6 +401,7 @@ Types
 -class context:
 -	stack=[]
 -	macro=macros
+-	nosemi=False
 
 =parse
 -def parse(text):
