@@ -104,7 +104,7 @@
 -	for x in args:
 -		compile(x,c)
 -		c.code.append(',')
--	c.code.pop()
+-	if args: c.code.pop()
 -	c.code.append(')')
 -comps['funcall']=c_funcall
 
@@ -409,8 +409,8 @@ Types
 -	while text:
 -		try: text=parse_one(c,text)
 -		except:
--			print 'tripped holding',c.stack
--			print 'on',repr(text[:20])
+-			print >>stderr,'tripped holding',c.stack
+-			print >>stderr,'on',repr(text[:20])
 -			raise
 -	return c
 
@@ -443,7 +443,7 @@ Types
 -	c.code=[]
 -	try: c=compiler(c.stack,c)
 -	except:
--		print c.code
+-		print >>stderr,c.code
 -		raise
 -	try:
 -		print ''.join(c.code)
