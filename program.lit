@@ -70,7 +70,7 @@
 -def c_struct(t,c):
 -	_,decl=t
 -	c.code.append('struct ')
--	c.code.append(decl[0])
+-	c.code.append(mangle_name(decl[0]))
 -	c.code.append('{')
 -	for i in range(1,len(decl),2):
 -		c.code.append(resolve_type(decl[i+1],decl[i]))
