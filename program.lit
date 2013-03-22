@@ -28,6 +28,7 @@
 -	c=[]
 -	for x in t.c:
 -		if isinstance(x,list):
+-			if not name: name=''
 -			f=func_decl('(*'+name+')',x[0],x[1:],mangle=False)
 -			name=None
 -			c.append(f)
@@ -269,7 +270,7 @@ Types
 -def macro_struct(c,t):
 -	t=c.stack.pop()
 -	if type(t)==str:
--		c.stack.append(O(i=Type,c=['struct '+t]))
+-		c.stack.append(O(i=Type,c=['struct '+mangle_name(t)]))
 -	elif type(t)==list:
 -		c.stack.append(('struct',t))
 -	else:
