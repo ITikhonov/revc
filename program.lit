@@ -83,6 +83,15 @@
 -	c.code.append(func_decl('(*'+mangle_name(name)+')',decl[0],decl[1:],False))
 -comps['funcptr']=c_funcptr
 
+-def c_cast(t,c):
+-	_,value,t=t
+-	c.code.append('((')
+-	c.code.append(resolve_type(t))
+-	c.code.append(')')
+-	compile(value,c)
+-	c.code.append(')')
+-comps['cast']=c_cast
+
 -def c_var(t,c):
 -	_,t,name=t
 -	c.code.append(resolve_type(t,name))
@@ -183,6 +192,13 @@
 -for x in '-- ++'.split():
 -	comps[x]=c_infix
 
+-def c_ptr(t,c):
+-	_,v=t
+-	c.code.append('(&')
+-	compile(v,c)
+-	c.code.append(')')
+-comps['&']=c_ptr
+
 -def c_return(t,c):
 -	_,a=t
 -	c.code.append('return ')
@@ -244,6 +260,7 @@ Types
 -		macro_binop(c,t)
 -macros['*']=macro_asterisk
 
+
 -def macro_include(c,t):
 -	t=c.stack.pop()
 -	c.stack.append(('include',t))
@@ -297,7 +314,7 @@ Types
 -	a=c.stack.pop()
 -	b=c.stack.pop()
 -	c.stack.append((t,b,a))
--for x in '< > + - / == >= <= <- . if for'.split():
+-for x in '< > + - / == >= <= <- . cast if for'.split():
 -	macros[x]=macro_binop
 
 -def macro_triop(c,t):
@@ -310,7 +327,7 @@ Types
 
 -def macro_infix(c,t):
 -	c.stack.append((t,c.stack.pop()))
--for x in 'return ++'.split():
+-for x in '& return ++'.split():
 -	macros[x]=macro_infix
 
 -def macro_block(c,t):
@@ -450,3 +467,5 @@ Types
 -	except:
 -		print >>stderr,'tripped on'
 -		pp(c.code,stream=stderr)
+-		raise
+
