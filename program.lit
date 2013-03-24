@@ -95,11 +95,13 @@
 
 -def c_var(t,c):
 -	_,t,name=t
+-	name=c.scope.get(name,name)
 -	c.code.append(resolve_type(t,name))
 -comps['var']=c_var
 
 -def c_assignvar(t,c):
 -	_,vt,name,value=t
+-	name=c.scope.get(name,name)
 -	c.code.append(resolve_type(vt,name))
 -	c.code.append('=')
 -	compile(value,c)
@@ -117,6 +119,14 @@
 -	if args: c.code.pop()
 -	c.code.append(')')
 -comps['funcall']=c_funcall
+
+-def c_mcall(t,c):
+-	_,name,values=t
+-	args,body=macro_macro.macros[name]
+-	c.scope=dict(zip(args,values))
+-	compiler(body,c)
+-	c.scope={}
+-comps['mcall']=c_mcall
 
 
 -def c_pfield(t,c):
@@ -216,7 +226,10 @@
 -	elif expr.isdigit() or (expr.startswith('-') and expr[1:].isdigit()):
 -		c.code.append(expr)
 -	else:
--		c.code.append(mangle_name(expr))
+-		if expr in c.scope:
+-			compile(c.scope[expr],c)
+-		else:
+-			c.code.append(mangle_name(expr))
 
 -def compiler(tree,c):
 -	for x in tree:
@@ -351,6 +364,23 @@ Types
 -	c.stack.append(('funcall',name,args))
 -macros['call']=macro_call
 
+-def macro_macro(c,t):
+-	body=c.stack.pop()
+-	args=c.stack.pop()
+-	name=c.stack.pop()
+-	macro_macro.macros[name]=(args,body)
+-macros['macro']=macro_macro
+-macro_macro.macros={}
+
+-def macro_mcall(c,t):
+-	name=c.stack.pop()
+-	arity=int(t[1:])
+
+-	args=[]
+-	for i in range(arity):
+-		args.insert(0,c.stack.pop())
+-	c.stack.append(('mcall',name,args))
+
 
 =>example.revc
 -[ unistd.h ] include
@@ -410,6 +440,8 @@ Types
 -	if t in c.macro: c.macro[t](c,t)
 -	elif t.startswith('/'):
 -		macro_call(c,t)
+-	elif t.startswith('$'):
+-		macro_mcall(c,t)
 -	else: c.stack.append(t)
 -	return rest
 
@@ -419,6 +451,7 @@ Types
 -	stack=[]
 -	macro=macros
 -	nosemi=False
+-	scope={}
 
 =parse
 -def parse(text):
