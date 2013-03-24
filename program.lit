@@ -69,11 +69,11 @@
 -comps['func']=c_func
 
 -def c_struct(t,c):
--	_,decl=t
+-	_,name,decl=t
 -	c.code.append('struct ')
--	c.code.append(mangle_name(decl[0]))
+-	c.code.append(mangle_name(name))
 -	c.code.append('{')
--	for i in range(1,len(decl),2):
+-	for i in range(0,len(decl),2):
 -		c.code.append(resolve_type(decl[i+1],decl[i]))
 -		c.code.append(';')
 -	c.code.append('}');
@@ -121,16 +121,16 @@
 
 -def c_pfield(t,c):
 -	_,f,s=t
--	compile(s,c)
--	c.code.append('->')
 -	compile(f,c)
+-	c.code.append('->')
+-	compile(s,c)
 -comps['<-']=c_pfield
 
 -def c_field(t,c):
 -	_,f,s=t
--	compile(s,c)
--	c.code.append('.')
 -	compile(f,c)
+-	c.code.append('.')
+-	compile(s,c)
 -comps['.']=c_field
 
 
@@ -170,9 +170,9 @@
 
 -def c_arrsub(t,c):
 -	_,i,a=t
--	compile(a,c)
--	c.code.append('[')
 -	compile(i,c)
+-	c.code.append('[')
+-	compile(a,c)
 -	c.code.append(']')
 -comps['[]']=c_arrsub
 
@@ -272,7 +272,8 @@ Types
 -	if type(t)==str:
 -		c.stack.append(O(i=Type,c=['struct '+mangle_name(t)]))
 -	elif type(t)==list:
--		c.stack.append(('struct',t))
+-		name=c.stack.pop()
+-		c.stack.append(('struct',name,t))
 -	else:
 -		raise Exception('struct only follows name or list, but got {0} of type {1}'.format(t,type(t)))
 -macros['struct']=macro_struct
@@ -357,12 +358,11 @@ Types
 -[ stdio.h ] include
 
 -handler [ void arg int ] * var
--[ sub sub int ] struct
--[
--	conn
+-sub [ subf int ] struct
+-conn [
 -	fd int
 -	reg int
--	sub sub struct
+-	subc sub struct
 -] struct
 -skip-header [
 -char * 
@@ -370,17 +370,17 @@ Types
 -	buf-fer	char 1024 []
 -]
 -[ 
--	fd c <- buf-fer 1024 read /3 r int =
+-	c fd <- buf-fer 1024 read /3 r int =
 -	[ 0 i int = i r < i ++ ]
 -	[
--		i buf-fer [] reg c <- "\r\n\r\n" [] ==
--		[ reg c <- ++ ]
--		[ 0 reg c <- = ] ifelse
+-		i buf-fer [] "\r\n\r\n" c reg <- [] ==
+-		[ c reg <- ++ ]
+-		[ 0 c reg <- = ] ifelse
 -
--		reg c <- 4 == [ buf-fer i 1 + + return ] if
+-		c reg <- 4 == [ buf-fer i 1 + + return ] if
 -	] for
 -
--	1 sub sub . c <- =
+-	1 c subc subf . <- =
 -	0 return
 -] func
 
