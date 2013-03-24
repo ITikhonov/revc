@@ -120,17 +120,17 @@
 
 
 -def c_pfield(t,c):
--	_,f,s=t
--	compile(f,c)
--	c.code.append('->')
+-	_,s,f=t
 -	compile(s,c)
+-	c.code.append('->')
+-	compile(f,c)
 -comps['<-']=c_pfield
 
 -def c_field(t,c):
--	_,f,s=t
--	compile(f,c)
--	c.code.append('.')
+-	_,s,f=t
 -	compile(s,c)
+-	c.code.append('.')
+-	compile(f,c)
 -comps['.']=c_field
 
 
@@ -169,10 +169,10 @@
 -comps['if']=c_if
 
 -def c_arrsub(t,c):
--	_,i,a=t
--	compile(i,c)
--	c.code.append('[')
+-	_,a,i=t
 -	compile(a,c)
+-	c.code.append('[')
+-	compile(i,c)
 -	c.code.append(']')
 -comps['[]']=c_arrsub
 
@@ -302,13 +302,12 @@ Types
 -macros['var']=macro_var
 
 -def macro_assign(c,t):
+-	v=c.stack.pop()
 -	t=c.stack.pop()
 -	if getattr(t,'i',None)==Type:
 -		n=c.stack.pop()
--		v=c.stack.pop()
 -		c.stack.append(('assignvar',t,n,v))
 -	else:
--		v=c.stack.pop()
 -		c.stack.append(('=',t,v))
 -macros['=']=macro_assign
 
@@ -358,11 +357,11 @@ Types
 -[ stdio.h ] include
 
 -handler [ void arg int ] * var
--sub [ subf int ] struct
+-sub [ sub int ] struct
 -conn [
 -	fd int
 -	reg int
--	subc sub struct
+-	sub sub struct
 -] struct
 -skip-header [
 -char * 
@@ -370,17 +369,17 @@ Types
 -	buf-fer	char 1024 []
 -]
 -[ 
--	c fd <- buf-fer 1024 read /3 r int =
+-	fd c <- buf-fer 1024 read /3 r int =
 -	[ 0 i int = i r < i ++ ]
 -	[
--		i buf-fer [] "\r\n\r\n" c reg <- [] ==
--		[ c reg <- ++ ]
--		[ 0 c reg <- = ] ifelse
+-		i buf-fer [] reg c <- "\r\n\r\n" [] ==
+-		[ reg c <- ++ ]
+-		[ 0 reg c <- = ] ifelse
 -
--		c reg <- 4 == [ buf-fer i 1 + + return ] if
+-		reg c <- 4 == [ buf-fer i 1 + + return ] if
 -	] for
 -
--	1 c subc subf . <- =
+-	1 sub sub . c <- =
 -	0 return
 -] func
 
