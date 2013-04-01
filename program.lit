@@ -251,6 +251,10 @@ Types
 =types
 -Type='Type'
 
+-def macro_type(c,t):
+-	c.stack.append(O(i=Type,c=[c.stack.pop()]))
+-macros['type']=macro_type
+
 -def macro_void(c,t):
 -	c.stack.append(O(i=Type,c=['void']))
 -macros['void']=macro_void
