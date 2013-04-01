@@ -394,37 +394,34 @@ Types
 -		args.insert(0,c.stack.pop())
 -	c.stack.append(('mcall',name,args))
 
+-def macro_raw(c,t):
+-	raw=c.stack.pop()
+-	params=c.stack.pop()
+-	name=c.stack.pop()
+-	macro_raw.raws[name]=(params,raw)
+-macro_raw.raws={}
+-macros['raw']=macro_raw
+
+-def macro_rawcall(c,t):
+-	name=c.stack.pop()
+-	params,raw=macro_raw.raws[name]
+
+-	values=[]
+-	for i in range(len(params)):
+-		values.insert(0,c.stack.pop())
+-	bind=dict(zip(params,values))
+-	cooked=[bind.get(x,x) for x in raw]
+-	c.input=cooked
+-macros['#']=macro_rawcall
+		
+
 
 =>example.revc
 -[ unistd.h ] include
 -[ stdio.h ] include
 
--handler [ void arg int ] * var
--sub [ sub int ] struct
--conn [
--	fd int
--	reg int
--	sub sub struct
--] struct
--skip-header [
--char * 
--	c	conn struct *
--	buf-fer	char 1024 []
--]
--[ 
--	fd c <- buf-fer 1024 read /3 r int =
--	[ 0 i int = i r < i ++ ]
--	[
--		i buf-fer [] reg c <- "\r\n\r\n" [] ==
--		[ reg c <- ++ ]
--		[ 0 reg c <- = ] ifelse
--
--		reg c <- 4 == [ buf-fer i 1 + + return ] if
--	] for
--
--	1 sub sub . c <- =
--	0 return
--] func
+-raw-macro { row macro } { that's a row macro [] char void } raw
+-insteadofraw insteadofmacro raw-macro #
 
 =>fib.revc
 -fib [ int  i int ]
@@ -444,16 +441,32 @@ Types
 
 =parse-one
 -def parse_one(c,text):
--	if text.startswith('"'):
--		t,rest=text[1:].split('"',1)
--		c.stack.append('"'+t+'"')
+-	if not c.input:
+-		if text.startswith('"'):
+-			t,rest=text[1:].split('"',1)
+-			c.stack.append('"'+t+'"')
+-			return rest
+-		if text.startswith("'"):
+-			t,rest=text[1:].split("'",1)
+-			c.stack.append("'{}'".format(t))
+-			return rest
+-		s=text.split(None,1)
+-		t,rest=s if len(s)==2 else (s[0],'')
+-	else:
+-		t=c.input.pop(0)
+-		rest=text
+
+-	if t=='{':
+-		c.raw=[]
 -		return rest
--	if text.startswith("'"):
--		t,rest=text[1:].split("'",1)
--		c.stack.append("'{}'".format(t))
+-	if t=='}':
+-		c.stack.append(c.raw)
+-		c.raw=None
 -		return rest
--	s=text.split(None,1)
--	t,rest=s if len(s)==2 else (s[0],'')
+-	if c.raw is not None:
+-		c.raw.append(t)
+-		return rest
+
 -	if t in c.macro: c.macro[t](c,t)
 -	elif t.startswith('/'):
 -		macro_call(c,t)
@@ -469,11 +482,13 @@ Types
 -	macro=macros
 -	nosemi=False
 -	scope={}
+-	raw=None
+-	input=[]
 
 =parse
 -def parse(text):
 -	c=context()
--	while text:
+-	while text or c.input:
 -		try: text=parse_one(c,text)
 -		except:
 -			print >>stderr,'tripped holding',c.stack
