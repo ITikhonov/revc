@@ -213,7 +213,7 @@
 -def c_return(t,c):
 -	_,a=t
 -	c.code.append('return ')
--	compile(a,c)
+-	if a is not None: compile(a,c)
 -comps['return']=c_return
 
 -def compile(expr,c):
@@ -221,7 +221,7 @@
 -		comps[expr[0]](expr,c)
 -	elif type(expr)==list:
 -		raise Exception('Hey, list!',expr)
--	elif expr.startswith('"'):
+-	elif expr.startswith('"') or expr.startswith("'"):
 -		c.code.append(expr)
 -	elif expr.isdigit() or (expr.startswith('-') and expr[1:].isdigit()):
 -		c.code.append(expr)
@@ -353,6 +353,10 @@ Types
 -for x in '& return ++'.split():
 -	macros[x]=macro_infix
 
+-def macro_ret(c,t):
+-	c.stack.append(('return',None))
+-macros['ret']=macro_ret
+
 -def macro_block(c,t):
 -	pp(c.stack,stream=stderr)
 -	b=[]
@@ -443,6 +447,10 @@ Types
 -	if text.startswith('"'):
 -		t,rest=text[1:].split('"',1)
 -		c.stack.append('"'+t+'"')
+-		return rest
+-	if text.startswith("'"):
+-		t,rest=text[1:].split("'",1)
+-		c.stack.append("'{}'".format(t))
 -		return rest
 -	s=text.split(None,1)
 -	t,rest=s if len(s)==2 else (s[0],'')
