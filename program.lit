@@ -300,8 +300,13 @@ Types
 -	elif type(p)==str and p.isdigit():
 -		n=int(p)
 -		t=c.stack.pop()
--		t.c.append('[%u]'%n)
--		c.stack.append(t)
+-		if getattr(t,'i',None)==Type:
+-			t.c.append('[%u]'%n)
+-			c.stack.append(t)
+-		else:
+-			c.stack.append(t)
+-			c.stack.append(p)
+-			macro_binop(c,'[]')
 -	else:
 -		c.stack.append(p)
 -		macro_binop(c,t)
