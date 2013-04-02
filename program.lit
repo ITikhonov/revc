@@ -205,6 +205,10 @@
 -for x in '+ - * / < > >= <= == = << >> >>= <<= |='.split():
 -	comps[x]=c_binop
 
+-def c_b_and(t,c):
+-	c_binop(('&',t[1],t[2]),c)
+-comps['b&']=c_b_and
+
 -def c_infix(t,c):
 -	op,a=t
 -	compile(a,c)
@@ -346,7 +350,7 @@ Types
 -	a=c.stack.pop()
 -	b=c.stack.pop()
 -	c.stack.append((t,b,a))
--for x in '< > + - / == >= <= |= << >> >>= <<= <- . cast if for'.split():
+-for x in '< > + - / == >= <= b& |= << >> >>= <<= <- . cast if for'.split():
 -	macros[x]=macro_binop
 
 -def macro_triop(c,t):
@@ -421,6 +425,12 @@ Types
 -	cooked=[bind.get(x,x) for x in raw]
 -	c.input=cooked
 -macros['#']=macro_rawcall
+
+-def macro_concat(c,t):
+-	tail=c.stack.pop()
+-	head=c.stack.pop()
+-	c.stack.append(head+tail)
+-macros['##']=macro_concat
 		
 
 
