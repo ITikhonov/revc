@@ -143,6 +143,12 @@
 -	compile(f,c)
 -comps['.']=c_field
 
+-def c_block(t,c):
+-	_,body=t
+-	c.code.append('{')
+-	compiler(body,c)
+-	c.code.append('}')
+-comps['block']=c_block
 
 -def c_for(t,c):
 -	_,pre,body=t
@@ -151,8 +157,9 @@
 -	c.code.append(';')
 -	if len(pre)==3: compile(pre[1],c)
 -	elif len(pre)==2: compile(pre[0],c)
+-	elif len(pre)==1: compile(pre[0],c)
 -	c.code.append(';')
--	if len(pre)>0: compile(pre[-1],c)
+-	if len(pre)>1: compile(pre[-1],c)
 -	c.code.append(') {')
 -	compiler(body,c)
 -	c.code.append('}')
@@ -193,7 +200,7 @@
 -	c.code.append(op)
 -	compile(b,c)
 -	c.code.append(')')
--for x in '+ - * / < > >= <= == ='.split():
+-for x in '+ - * / < > >= <= == = << >> >>= <<= |='.split():
 -	comps[x]=c_binop
 
 -def c_infix(t,c):
@@ -337,7 +344,7 @@ Types
 -	a=c.stack.pop()
 -	b=c.stack.pop()
 -	c.stack.append((t,b,a))
--for x in '< > + - / == >= <= <- . cast if for'.split():
+-for x in '< > + - / == >= <= |= << >> >>= <<= <- . cast if for'.split():
 -	macros[x]=macro_binop
 
 -def macro_triop(c,t):
@@ -350,7 +357,7 @@ Types
 
 -def macro_infix(c,t):
 -	c.stack.append((t,c.stack.pop()))
--for x in '& return ++'.split():
+-for x in '& return block ++ --'.split():
 -	macros[x]=macro_infix
 
 -def macro_ret(c,t):
@@ -365,7 +372,6 @@ Types
 -	c.stack.pop()
 -	c.stack.append(b)
 -macros[']']=macro_block
-
 
 -def macro_call(c,t):
 -	name=c.stack.pop()
@@ -467,11 +473,13 @@ Types
 -		c.raw.append(t)
 -		return rest
 
--	if t in c.macro: c.macro[t](c,t)
--	elif t.startswith('/'):
--		macro_call(c,t)
--	elif t.startswith('$'):
--		macro_mcall(c,t)
+-	if isinstance(t,basestring):
+-		if t in c.macro: c.macro[t](c,t)
+-		elif t.startswith('/'):
+-			macro_call(c,t)
+-		elif t.startswith('$'):
+-			macro_mcall(c,t)
+-		else: c.stack.append(t)
 -	else: c.stack.append(t)
 -	return rest
 
