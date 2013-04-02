@@ -56,12 +56,14 @@
 -def c_include(t,c):
 -	_,files=t
 -	for x in files:
--		c.code.append('#include <{0}>\n'.format(x))
+-		c.includes.append('#include <{0}>\n'.format(x))
 -	c.nosemi=True
 -comps['include']=c_include
 
 -def c_func(t,c):
 -	_,name,args,body=t
+-	c.decls.append(func_decl(name,args[0],args[1:]))
+-	c.decls.append(';')
 -	c.code.append(func_decl(name,args[0],args[1:]))
 -	c.code.append('{')
 -	compiler(body,c)
@@ -70,13 +72,13 @@
 
 -def c_struct(t,c):
 -	_,name,decl=t
--	c.code.append('struct ')
--	c.code.append(mangle_name(name))
--	c.code.append('{')
+-	c.structs.append('struct ')
+-	c.structs.append(mangle_name(name))
+-	c.structs.append('{')
 -	for i in range(0,len(decl),2):
--		c.code.append(resolve_type(decl[i+1],decl[i]))
--		c.code.append(';')
--	c.code.append('}');
+-		c.structs.append(resolve_type(decl[i+1],decl[i]))
+-		c.structs.append(';')
+-	c.structs.append('};');
 -comps['struct']=c_struct
 
 -def c_funcptr(t,c):
@@ -493,6 +495,10 @@ Types
 -	raw=None
 -	input=[]
 
+-	includes=[]
+-	structs=[]
+-	decls=[]
+
 =parse
 -def parse(text):
 -	c=context()
@@ -536,7 +542,7 @@ Types
 -		print >>stderr,c.code
 -		raise
 -	try:
--		print ''.join(c.code)
+-		print ''.join(c.includes+c.structs+c.decls+c.code)
 -	except:
 -		print >>stderr,'tripped on'
 -		pp(c.code,stream=stderr)
