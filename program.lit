@@ -202,7 +202,7 @@
 -	c.code.append(op)
 -	compile(b,c)
 -	c.code.append(')')
--for x in '+ - * / < > >= <= == = << >> >>= <<= |='.split():
+-for x in '+ - * / < > >= <= == = << >> >>= <<= |= |'.split():
 -	comps[x]=c_binop
 
 -def c_b_and(t,c):
@@ -280,7 +280,7 @@ Types
 -	c.stack.append(O(i=Type,c=['int']))
 -macros['int']=macro_int
 
--def macro_asterisk(c,t):
+-def macro_at(c,t):
 -	t=c.stack.pop()
 -	if isinstance(t,O):
 -		t.c.append('*')
@@ -289,7 +289,7 @@ Types
 -		c.stack.append(O(i=Type,c=[t]))
 -	else:
 -		macro_binop(c,t)
--macros['*']=macro_asterisk
+-macros['@']=macro_at
 
 
 -def macro_include(c,t):
@@ -350,7 +350,7 @@ Types
 -	a=c.stack.pop()
 -	b=c.stack.pop()
 -	c.stack.append((t,b,a))
--for x in '< > + - / == >= <= b& |= << >> >>= <<= <- . cast if for'.split():
+-for x in '< > + - / * == >= <= b& |= | << >> >>= <<= <- . cast if for'.split():
 -	macros[x]=macro_binop
 
 -def macro_triop(c,t):
