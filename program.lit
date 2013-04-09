@@ -229,6 +229,16 @@
 -	if a is not None: compile(a,c)
 -comps['return']=c_return
 
+-def isnumber(expr):
+-	if expr.startswith('-'): expr=expr[1:]
+-	if len(expr)==0: return False
+-	expr=expr.replace('.','',1)
+-	if len(expr)==0: return False
+-	if expr[-1] in 'fdl': expr=expr[:-1]
+-	return expr.isdigit()
+
+
+
 -def compile(expr,c):
 -	if type(expr)==tuple:
 -		comps[expr[0]](expr,c)
@@ -236,7 +246,7 @@
 -		raise Exception('Hey, list!',expr)
 -	elif expr.startswith('"') or expr.startswith("'"):
 -		c.code.append(expr)
--	elif expr.isdigit() or (expr.startswith('-') and expr[1:].isdigit()):
+-	elif isnumber(expr):
 -		c.code.append(expr)
 -	else:
 -		if expr in c.scope:
