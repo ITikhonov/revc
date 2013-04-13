@@ -290,6 +290,10 @@ Types
 -	c.stack.append(O(i=Type,c=['int']))
 -macros['int']=macro_int
 
+-def macro_float(c,t):
+-	c.stack.append(O(i=Type,c=['float']))
+-macros['float']=macro_float
+
 -def macro_at(c,t):
 -	t=c.stack.pop()
 -	if isinstance(t,O):
