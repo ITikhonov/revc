@@ -216,6 +216,13 @@
 -for x in '-- ++'.split():
 -	comps[x]=c_infix
 
+-def c_at(t,c):
+-	op,a=t
+-	c.code.append('(*')
+-	compile(a,c)
+-	c.code.append(')')
+-comps['@']=c_at
+
 -def c_ptr(t,c):
 -	_,v=t
 -	c.code.append('(&')
@@ -302,7 +309,7 @@ Types
 -	elif isinstance(t,list):
 -		c.stack.append(O(i=Type,c=[t]))
 -	else:
--		macro_binop(c,t)
+-		c.stack.append(('@',t))
 -macros['@']=macro_at
 
 
