@@ -101,6 +101,13 @@
 -	c.code.append(resolve_type(t,name))
 -comps['var']=c_var
 
+-def c_static(t,c):
+-	_,t,name=t
+-	name=c.scope.get(name,name)
+-	c.vars.append('static ')
+-	c.vars.append(resolve_type(t,name))
+-comps['static']=c_static
+
 -def c_assignvar(t,c):
 -	_,vt,name,value=t
 -	name=c.scope.get(name,name)
@@ -352,10 +359,11 @@ Types
 
 
 -def macro_var(c,t):
--	t=c.stack.pop()
+-	tp=c.stack.pop()
 -	n=c.stack.pop()
--	c.stack.append(('var',t,n))
+-	c.stack.append((t,tp,n))
 -macros['var']=macro_var
+-macros['static']=macro_var
 
 -def macro_assign(c,t):
 -	v=c.stack.pop()
@@ -456,11 +464,8 @@ Types
 
 
 =>example.revc
--[ unistd.h ] include
--[ stdio.h ] include
-
--raw-macro { row macro } { that's a row macro [] char void } raw
--insteadofraw insteadofmacro raw-macro #
+-test int static
+-main [ int ] [ x int var 0 return ] func
 
 =>fib.revc
 -fib [ int  i int ]
@@ -529,6 +534,7 @@ Types
 -	includes=[]
 -	structs=[]
 -	decls=[]
+-	vars=[]
 
 =parse
 -def parse(text):
@@ -573,7 +579,7 @@ Types
 -		print >>stderr,c.code
 -		raise
 -	try:
--		print ''.join(c.includes+c.structs+c.decls+c.code)
+-		print ''.join(c.includes+c.structs+c.decls+c.vars+c.code)
 -	except:
 -		print >>stderr,'tripped on'
 -		pp(c.code,stream=stderr)
