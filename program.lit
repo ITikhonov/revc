@@ -106,6 +106,7 @@
 -	name=c.scope.get(name,name)
 -	c.vars.append('static ')
 -	c.vars.append(resolve_type(t,name))
+-	c.vars.append(';')
 -comps['static']=c_static
 
 -def c_assignvar(t,c):
@@ -209,7 +210,7 @@
 -	c.code.append(op)
 -	compile(b,c)
 -	c.code.append(')')
--for x in '+ - * / < > >= <= == = << >> >>= <<= |= |'.split():
+-for x in '+ - * / % < > >= <= == = << >> >>= <<= |= | && ||'.split():
 -	comps[x]=c_binop
 
 -def c_b_and(t,c):
@@ -379,7 +380,7 @@ Types
 -	a=c.stack.pop()
 -	b=c.stack.pop()
 -	c.stack.append((t,b,a))
--for x in '< > + - / * == >= <= b& |= | << >> >>= <<= <- . cast if for'.split():
+-for x in '< > + - / * % == >= <= b& |= && || | << >> >>= <<= <- . cast if for'.split():
 -	macros[x]=macro_binop
 
 -def macro_triop(c,t):
@@ -466,6 +467,8 @@ Types
 =>example.revc
 -test int static
 -main [ int ] [ x int var 0 return ] func
+
+-logic [ int ] [ 1 2 && return ] func
 
 =>fib.revc
 -fib [ int  i int ]
