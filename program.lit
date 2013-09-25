@@ -1,3 +1,52 @@
+		Pools
+
+=pools
+-def macro_pool(c,t):
+-	t=c.stack.pop()
+-	n=c.stack.pop()
+-	name=c.stack.pop()
+
+-	arr=O(i='Type',c=t.c[:])
+-	arr.c.append('['+n+']')
+
+-	pt=O(i='Type',c=t.c[:])
+-	pt.c.append('*')
+
+-	definition=[	'data', arr,
+-			'free', O(i='Type', c=['int', '['+n+']']),
+-			'freep', O(i='Type', c=['int'])
+-	]
+
+-	c.stack.append(('struct',name,definition))
+
+-	c.stack.append(('static', O(i='Type', c=['struct '+name]), name))
+
+-	c.stack.append(
+-		('func', name+'-reset',	[O(i='Type', c=['void'])],
+-			[('assignvar', O(i='Type', c=['int']), 'i', '0'),
+-			('for', [('<', 'i', n), ('++', 'i')],
+-				[('=', ('[]', ('.', name, 'free'), 'i'), 'i')]),
+-			('=', ('.', name, 'freep'), '0'),
+-			])
+-	)
+
+-	c.stack.append(
+-		('func', name+'-allocate', [pt],
+-			[('return', ('+', ('.', name, 'data'),
+-				('[]', ('.', name, 'free'), ('++', ('.', name, 'freep')))))])
+-	)
+
+-	c.stack.append(
+-		('func', name+'-release', [O(i='Type', c=['void']), 'b', pt],
+-			[('--', ('.', name, 'freep')),
+-			('=', ('[]', ('.', name, 'free'), ('.', name, 'freep')),
+-				('-', 'b', ('.', name, 'data')))])
+-	)
+
+-macros['pool']=macro_pool
+
+
+
 		Utilities
 
 =utils
@@ -470,6 +519,10 @@ Types
 
 -logic [ int ] [ 1 2 && return ] func
 
+-box [ x int y int ] struct
+
+-boxes 1024 box struct pool
+
 =>fib.revc
 -fib [ int  i int ]
 -[
@@ -566,6 +619,7 @@ Types
 >compiler
 
 >macros
+>pools
 >types
 >parse-one
 >parse
