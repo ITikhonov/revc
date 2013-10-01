@@ -43,8 +43,8 @@ free freep [] idx =
 
 =pools
 -def macro_pool(c,t):
--	t=c.stack.pop()
 -	n=c.stack.pop()
+-	t=c.stack.pop()
 -	name=c.stack.pop()
 
 -	arr=O(i='Type',c=t.c[:])
@@ -589,7 +589,7 @@ Types
 
 -box [ x int y int ] struct
 
--boxes 1024 box struct pool
+-boxes box struct 1024 pool
 
 -main [ int ] [ x int var
 -	boxes [ "%u " i printf /2 ] each 
