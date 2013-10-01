@@ -1,5 +1,35 @@
 		Pools
 
+	Pools are arrays with auxilary data to track what array items are used.
+
+
+pool [
+	data DATATYPE SIZE []
+	free int SIZE []
+	freep int
+	track int size [] 
+] struct
+
+	Everything to the left of freep index is used.
+	Everything at and to the right is free.
+
+	Track is used to map data elements to their position in free array.
+
+	To allocate item:
+
+idx DATATYPE free freep [] =
+track idx [] freep =
+freep ++
+
+	To release idx item we need to swap it's idx with idx of rightest used index and
+	decrement freep.
+
+freep --
+track idx [] free freep [] =
+free freep [] idx =
+
+
+
 =pools
 -def macro_pool(c,t):
 -	t=c.stack.pop()
