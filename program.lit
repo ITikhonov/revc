@@ -53,6 +53,8 @@ free freep [] idx =
 -	pt=O(i='Type',c=t.c[:])
 -	pt.c.append('*')
 
+-	macro_pool.pools[name]=pt
+
 -	definition=[	'data', arr,
 -			'track', O(i='Type', c=['int', '['+n+']']),
 -			'free', O(i='Type', c=['int', '['+n+']']),
@@ -98,7 +100,19 @@ free freep [] idx =
 -		])
 -	)
 
+
+-macro_pool.pools={}
 -macros['pool']=macro_pool
+
+-def macro_each(c,t):
+-	block=c.stack.pop()
+-	pool=c.stack.pop()
+-	block.insert(0,('assignvar',macro_pool.pools[pool],'p',('+',('.',pool,'data'),'i')))
+-	c.stack.append(('block',[
+-		('assignvar',O(i='Type',c=['int']),'i','0'),
+-		('for', [('<', 'i', ('.', pool, 'freep')), ('++', 'i')], block)
+-	]))
+-macros['each']=macro_each
 
 
 
@@ -569,14 +583,20 @@ Types
 
 
 =>example.revc
--test int static
--main [ int ] [ x int var 0 return ] func
+-[ stdio.h ] include
 
--logic [ int ] [ 1 2 && return ] func
+-test int static
 
 -box [ x int y int ] struct
 
 -boxes 1024 box struct pool
+
+-main [ int ] [ x int var
+-	boxes [ "%u " i printf /2 ] each 
+-	0 return ] func
+
+-logic [ int ] [ 1 2 && return ] func
+
 
 =>fib.revc
 -fib [ int  i int ]
