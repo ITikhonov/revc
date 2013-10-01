@@ -25,7 +25,18 @@ freep ++
 	decrement freep.
 
 freep --
-track idx [] free freep [] =
+	Under freep now a used element oidx. We need move it to where idx was in free array.
+	For that we using track to find where in free idx was, save oidx there
+	and update track oidx [] to new location
+
+oidx int free freep [] =
+freeidx int track idx [] =
+
+free freeidx [] oidx =
+track oidx [] freeidx =
+
+	And now we put idx back to unused.
+
 free freep [] idx =
 
 
@@ -43,6 +54,7 @@ free freep [] idx =
 -	pt.c.append('*')
 
 -	definition=[	'data', arr,
+-			'track', O(i='Type', c=['int', '['+n+']']),
 -			'free', O(i='Type', c=['int', '['+n+']']),
 -			'freep', O(i='Type', c=['int'])
 -	]
@@ -62,15 +74,28 @@ free freep [] idx =
 
 -	c.stack.append(
 -		('func', name+'-allocate', [pt],
--			[('return', ('+', ('.', name, 'data'),
--				('[]', ('.', name, 'free'), ('++', ('.', name, 'freep')))))])
+-			[('assignvar', O(i='Type', c=['int']), 'idx',
+-					('[]', ('.', name, 'free'), ('.', name, 'freep'))),
+-			('=', ('[]', ('.', name, 'track'), 'idx'), ('.', name, 'freep')),
+-			('++', ('.', name, 'freep')),
+-			('return', ('+', ('.', name, 'data'), 'idx'))
+-			])
 -	)
 
 -	c.stack.append(
 -		('func', name+'-release', [O(i='Type', c=['void']), 'b', pt],
 -			[('--', ('.', name, 'freep')),
--			('=', ('[]', ('.', name, 'free'), ('.', name, 'freep')),
--				('-', 'b', ('.', name, 'data')))])
+-			('assignvar', O(i='Type', c=['int']), 'idx', ('-', 'b', ('.', name, 'data'))),
+-			('assignvar', O(i='Type', c=['int']), 'oidx',
+-				('[]', ('.', name, 'free'), ('.', name, 'freep'))),
+-			('assignvar', O(i='Type', c=['int']), 'freeidx',
+-				('[]', ('.', name, 'track'), 'idx')),
+
+-			('=', ('[]', ('.', name, 'free'), 'freeidx'), 'oidx'),
+-			('=', ('[]', ('.', name, 'track'), 'oidx'), 'freeidx'),
+
+-			('=', ('[]', ('.', name, 'free'), ('.', name, 'freep')), 'idx')
+-		])
 -	)
 
 -macros['pool']=macro_pool
