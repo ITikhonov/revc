@@ -419,6 +419,12 @@ Types
 -	c.stack.append(O(i=Type,c=['char']))
 -macros['char']=macro_char
 
+-def macro_const(c,t):
+-	t=c.stack.pop()
+-	t.c.insert(0,'const')
+-	c.stack.append(t)
+-macros['const']=macro_const
+
 -def macro_int(c,t):
 -	c.stack.append(O(i=Type,c=['int']))
 -macros['int']=macro_int
@@ -589,6 +595,8 @@ Types
 -box [ x int y int ] struct
 
 -boxes box struct 1024 pool
+
+-constvar char @ const var
 
 -main [ int ] [ x int var
 -	boxes [ "%u " i printf /2 ] each
