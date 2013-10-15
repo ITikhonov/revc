@@ -519,7 +519,6 @@ Types
 -macros['ret']=macro_ret
 
 -def macro_block(c,t):
--	pp(c.stack,stream=stderr)
 -	b=[]
 -	while c.stack[-1]!='[':
 -		b.insert(0,c.stack.pop())
