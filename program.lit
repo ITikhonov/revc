@@ -591,7 +591,9 @@ Types
 -boxes box struct 1024 pool
 
 -main [ int ] [ x int var
--	boxes [ "%u " i printf /2 ] each 
+-	boxes [ "%u " i printf /2 ] each
+-	"%s\n" "hello,
+-		world" printf /2 
 -	0 return ] func
 
 -logic [ int ] [ 1 2 && return ] func
@@ -616,8 +618,10 @@ Types
 =parse-one
 -def parse_one(c,text):
 -	if not c.input:
+-		text=text.lstrip()
 -		if text.startswith('"'):
 -			t,rest=text[1:].split('"',1)
+-			t=t.replace('\n','\\n')
 -			c.stack.append('"'+t+'"')
 -			return rest
 -		if text.startswith("'"):
