@@ -368,6 +368,7 @@ free freep [] idx =
 -	expr=expr.replace('.','',1)
 -	if len(expr)==0: return False
 -	if expr[-1] in 'fdl': expr=expr[:-1]
+-	if expr.startswith('0x'): return True
 -	return expr.isdigit()
 
 
